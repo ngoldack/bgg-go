@@ -1,8 +1,6 @@
 name: Go package
 
-on:
-  - push
-  - pull-request
+on: [push]
 
 jobs:
   build:
