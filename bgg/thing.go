@@ -1,6 +1,21 @@
 package bgg
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+)
+
+type ThingType string
+
+const (
+	ThingBoardgame          ThingType = "boardgame"
+	ThingBoardgameExtension ThingType = "boardgameextension"
+	ThingBoardgameAccessory ThingType = "boardgameaccessory"
+	ThingVideogame          ThingType = "videogame"
+	ThingRPGItem            ThingType = "rpgitem"
+)
 
 type Thing struct {
 	XMLName    xml.Name `xml:"items" json:"items,omitempty"`
@@ -69,4 +84,44 @@ type Thing struct {
 			Inbound string `xml:"inbound,attr" json:"inbound,omitempty"`
 		} `xml:"link" json:"link,omitempty"`
 	} `xml:"item" json:"item,omitempty"`
+}
+
+func Things(thingType ThingType, ids ...string) ([]Thing, error) {
+	things := make([]Thing, 0)
+	if len(ids) > 2000 {
+		recThings, err := Things(thingType, ids[2000:]...)
+		if err != nil {
+			return nil, err
+		}
+
+		things = append(things, recThings...)
+	}
+
+	var parsedIds string
+	for _, id := range ids[:2000] {
+		parsedIds += id + ","
+	}
+	parsedIds = parsedIds[:len(parsedIds)-1]
+
+	response, err := http.Get(fmt.Sprintf("%s/thing?id=%s", baseUrl, parsedIds))
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	newThings := make([]Thing, 0)
+	err = xml.Unmarshal(body, &newThings)
+	if err != nil {
+		return nil, err
+	}
+
+	newThings = append(newThings, things...)
+	return newThings, nil
 }
