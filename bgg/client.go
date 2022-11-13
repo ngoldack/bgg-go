@@ -1,6 +1,10 @@
 package bgg
 
-type Client struct{}
+import "net/http"
+
+type Client struct {
+	httpClient *http.Client
+}
 
 const (
 	baseUrl string = "https://boardgamegeek.com/xmlapi2"
@@ -8,5 +12,7 @@ const (
 
 // New creates a new bgg client
 func New() *Client {
-	return &Client{}
+	return &Client{
+		httpClient: http.DefaultClient,
+	}
 }

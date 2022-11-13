@@ -10,25 +10,27 @@ import (
 
 type SearchType string
 
-type Search struct {
+type SearchFrame struct {
 	XMLName    xml.Name `xml:"items"`
 	Text       string   `xml:",chardata"`
 	Total      string   `xml:"total,attr"`
 	Termsofuse string   `xml:"termsofuse,attr"`
-	Item       []struct {
-		Text string `xml:",chardata"`
-		Type string `xml:"type,attr"`
-		ID   string `xml:"id,attr"`
-		Name struct {
-			Text  string `xml:",chardata"`
-			Type  string `xml:"type,attr"`
-			Value string `xml:"value,attr"`
-		} `xml:"name"`
-		Yearpublished struct {
-			Text  string `xml:",chardata"`
-			Value string `xml:"value,attr"`
-		} `xml:"yearpublished"`
-	} `xml:"item"`
+	Search     []Search `xml:"item"`
+}
+
+type Search struct {
+	Text string `xml:",chardata"`
+	Type string `xml:"type,attr"`
+	ID   string `xml:"id,attr"`
+	Name struct {
+		Text  string `xml:",chardata"`
+		Type  string `xml:"type,attr"`
+		Value string `xml:"value,attr"`
+	} `xml:"name"`
+	Yearpublished struct {
+		Text  string `xml:",chardata"`
+		Value string `xml:"value,attr"`
+	} `xml:"yearpublished"`
 }
 
 const (
@@ -40,10 +42,10 @@ const (
 )
 
 // Search returns a search result
-func (cl *Client) Search(query string, types []SearchType, exact *int) (*Search, error) {
+func (client *Client) Search(query string, types []SearchType) ([]Search, error) {
 	query = strings.Replace(query, " ", "+", -1)
 
-	url := fmt.Sprintf("%s/search?query=%s", baseUrl, query)
+	url := fmt.Sprintf("%s/searchFrame?query=%s", baseUrl, query)
 
 	if types != nil && len(types) > 0 {
 		url += "&type="
@@ -51,11 +53,7 @@ func (cl *Client) Search(query string, types []SearchType, exact *int) (*Search,
 			url += string(t) + ","
 		}
 		// trim trailing comma
-		url = url[:len(url)-2]
-	}
-
-	if exact != nil {
-		url += fmt.Sprintf("&exact=%v", *exact)
+		url = url[:len(url)-1]
 	}
 
 	// Make the request to bgg
@@ -64,7 +62,7 @@ func (cl *Client) Search(query string, types []SearchType, exact *int) (*Search,
 		return nil, err
 	}
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", response.Status)
+		return nil, fmt.Errorf("unexpected status code: %v", response.Status)
 	}
 
 	// Read the response body
@@ -75,11 +73,11 @@ func (cl *Client) Search(query string, types []SearchType, exact *int) (*Search,
 	defer response.Body.Close()
 
 	// Unmarshal to struct
-	search := &Search{}
-	err = xml.Unmarshal(body, search)
+	searchFrame := &SearchFrame{}
+	err = xml.Unmarshal(body, searchFrame)
 	if err != nil {
 		return nil, err
 	}
 
-	return search, nil
+	return searchFrame.Search, nil
 }
