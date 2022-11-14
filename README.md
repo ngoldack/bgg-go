@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/ngoldack/bgg-go/actions/workflows/ci.yaml/badge.svg)
 ![Security Check](https://github.com/ngoldack/bgg-go/actions/workflows/codeql.yaml/badge.svg)
+[![codecov](https://codecov.io/github/ngoldack/bgg-go/branch/main/graph/badge.svg?token=59RN2REWTT)](https://codecov.io/github/ngoldack/bgg-go)
 [![Go Report Card](https://goreportcard.com/badge/ngoldack/bgg-go)](https://goreportcard.com/report/github.com/ngoldack/bgg-go)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ngoldack/bgg-go.svg)](https://pkg.go.dev/github.com/ngoldack/bgg-go)
 
